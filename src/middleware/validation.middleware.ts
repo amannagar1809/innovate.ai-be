@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { ISignUpRequest } from '../interface/auth.interface';
+import { ILoginRequest, ISignUpRequest } from '../interface/auth.interface';
 import { ValidationMessages } from '../enums/validation.enum';
 import { handleErrorResponse } from '../utils/errorHandler.util';
 
@@ -42,6 +42,34 @@ export const validateSignUp = (req: Request, res: Response, next: NextFunction):
       errors.push(ValidationMessages.MOBILE_NUMBER_REQUIRED);
     } else if (!mobileRegex.test(mobileNumber.trim())) {
       errors.push(ValidationMessages.MOBILE_NUMBER_INVALID);
+    }
+
+    if (errors.length > 0) {
+      handleErrorResponse(res, ValidationMessages.VALIDATION_FAILED, errors.join(', '), 400);
+      return;
+    }
+
+    next();
+  } catch (error) {
+    handleErrorResponse(res, ValidationMessages.INTERNAL_SERVER_ERROR, error);
+  }
+};
+
+export const validateLogin = (req: Request, res: Response, next: NextFunction): void => {
+  try {
+    const { email, password }: ILoginRequest = req.body;
+
+    const errors: string[] = [];
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || typeof email !== 'string' || email.trim().length === 0) {
+      errors.push(ValidationMessages.EMAIL_REQUIRED);
+    } else if (!emailRegex.test(email.trim())) {
+      errors.push(ValidationMessages.EMAIL_INVALID);
+    }
+
+    if (!password || typeof password !== 'string' || password.trim().length === 0) {
+      errors.push(ValidationMessages.PASSWORD_REQUIRED);
     }
 
     if (errors.length > 0) {

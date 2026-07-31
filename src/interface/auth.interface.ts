@@ -5,6 +5,11 @@ export interface ISignUpRequest {
   mobileNumber: string;
 }
 
+export interface ILoginRequest {
+  email: string;
+  password: string;
+}
+
 export interface IUser {
   _id?: string;
   fullName: string;
@@ -18,6 +23,6 @@ export interface IUser {
 export interface IAuthResponse {
   success: boolean;
   message: string;
-  data?: IUser;
+  data?: IUser | any;
   error?: string;
 }
