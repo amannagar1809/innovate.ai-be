@@ -24,4 +24,7 @@ export enum ValidationMessages {
   INTERNAL_SERVER_ERROR = 'Internal server error',
   USER_REGISTERED_SUCCESSFULLY = 'User registered successfully',
   FAILED_TO_REGISTER_USER = 'Failed to register user',
+  INVALID_CREDENTIALS = 'Invalid email or password',
+  LOGIN_SUCCESSFUL = 'Login successful',
+  FAILED_TO_LOGIN = 'Failed to login user',
 }
