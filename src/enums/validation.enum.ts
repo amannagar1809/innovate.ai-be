@@ -27,4 +27,9 @@ export enum ValidationMessages {
   INVALID_CREDENTIALS = 'Invalid email or password',
   LOGIN_SUCCESSFUL = 'Login successful',
   FAILED_TO_LOGIN = 'Failed to login user',
+  AUTHORIZATION_HEADER_REQUIRED = 'Authorization header is required',
+  AUTHORIZATION_INVALID_FORMAT = 'Authorization header must be in the format: Bearer <token>',
+  UNAUTHORIZED_ACCESS = 'Unauthorized access',
+  LOGOUT_SUCCESSFUL = 'Logout successful',
+  FAILED_TO_LOGOUT = 'Failed to logout user',
 }
