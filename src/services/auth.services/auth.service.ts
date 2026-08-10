@@ -1,7 +1,19 @@
 import bcrypt from 'bcrypt';
-import { ILoginRequest, ISignUpRequest, IAuthResponse, IUser } from '../../interface/auth.interface';
+import mongoose from 'mongoose';
+import {
+  ILoginRequest,
+  ISignUpRequest,
+  IAuthResponse,
+  IUser,
+  IAuthenticatedRequest,
+} from '../../interface/auth.interface';
 import User from '../../model/auth.model/User.model';
-import Token from '../../model/auth.model/Token.model';
+import Token, {
+  createTokenRecord,
+  deleteTokensForUser,
+  findActiveToken,
+  revokeToken,
+} from '../../model/auth.model/Token.model';
 import { ValidationMessages } from '../../enums/validation.enum';
 import { generateToken } from '../../utils/jwt.util';
 import { AUTH_CONSTANTS } from '../../constants/auth.constants';
@@ -84,8 +96,8 @@ export const login = async (loginData: ILoginRequest): Promise<IAuthResponse> =>
     const token = generateToken({ userId: user._id.toString() });
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    await Token.deleteMany({ userId: user._id });
-    await Token.create({ userId: user._id, token, expiresAt });
+    await deleteTokensForUser(user._id);
+    await createTokenRecord(user._id, token, expiresAt);
 
     return {
       success: true,
@@ -107,6 +119,75 @@ export const login = async (loginData: ILoginRequest): Promise<IAuthResponse> =>
     return {
       success: false,
       message: ValidationMessages.FAILED_TO_LOGIN,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    };
+  }
+};
+
+export const logout = async (
+  authRequest: IAuthenticatedRequest
+): Promise<IAuthResponse> => {
+  try {
+    const userId = authRequest.user?.userId;
+    const token = authRequest.token;
+
+    if (!userId || !token) {
+      return {
+        success: false,
+        message: ValidationMessages.UNAUTHORIZED_ACCESS,
+        error: 'Authorization required',
+        statusCode: 401,
+      };
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return {
+        success: false,
+        message: ValidationMessages.UNAUTHORIZED_ACCESS,
+        error: 'Invalid authenticated user',
+        statusCode: 401,
+      };
+    }
+
+    const tokenDoc = await findActiveToken(token, new mongoose.Types.ObjectId(userId));
+
+    if (!tokenDoc) {
+      return {
+        success: false,
+        message: ValidationMessages.UNAUTHORIZED_ACCESS,
+        error: 'Invalid or expired token',
+        statusCode: 401,
+      };
+    }
+
+    if (tokenDoc.userId.toString() !== userId) {
+      return {
+        success: false,
+        message: ValidationMessages.UNAUTHORIZED_ACCESS,
+        error: 'Token does not belong to authenticated user',
+        statusCode: 401,
+      };
+    }
+
+    const revokedToken = await revokeToken(token);
+
+    if (!revokedToken) {
+      return {
+        success: false,
+        message: ValidationMessages.FAILED_TO_LOGOUT,
+        error: 'Unable to revoke token',
+      };
+    }
+
+    return {
+      success: true,
+      message: ValidationMessages.LOGOUT_SUCCESSFUL,
+      data: null,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: ValidationMessages.FAILED_TO_LOGOUT,
       error: error instanceof Error ? error.message : 'Unknown error occurred',
     };
   }
