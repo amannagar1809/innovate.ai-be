@@ -9,7 +9,7 @@ const app: Express = express();
 const port = process.env.PORT;
 
 const corsMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+  res.header('Access-Control-Allow-Origin', 'https://turbo-space-capybara-4jjqrqqxp744f5g9r-3000.app.github.dev');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
